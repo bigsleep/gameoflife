@@ -72,6 +72,7 @@ wsApp w h field counter pdc = do
     doFlip ps = atomically $ do
         _ <- readTVar counter
         modifyTVar' field (flipField ps)
+        modifyTVar' counter id
 
     flipField ps (Field w' h' m) = Field w' h' (flipActions ps m)
 
