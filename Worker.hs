@@ -11,7 +11,9 @@ import Debug.Trace (trace)
 
 updateField :: TVar Field -> TVar Int -> STM ()
 updateField field counter =
-    modifyTVar' field nextStep >> modifyTVar' counter (+1)
+    modifyTVar' field nextStep >> modifyTVar' counter increment
+    where
+    increment a = if a >= 1000000 then 0 else a + 1
 
 
 worker :: TVar Field -> TVar Int -> Int -> IO ()

@@ -1,8 +1,6 @@
 module Main where
 
-import qualified Data.HashMap.Strict as HM (insert, lookupDefault)
-import Control.Concurrent (threadDelay)
-import Control.Concurrent.STM (TVar, newTVar, atomically)
+import Control.Concurrent.STM (newTVar, atomically)
 import qualified Network.Wai.Handler.Warp as Warp (run)
 import qualified Network.Wai.Handler.WebSockets as WaiWS (websocketsOr)
 import qualified Network.WebSockets as WS (defaultConnectionOptions)
@@ -16,8 +14,8 @@ import GameOfLife (initializeField)
 main :: IO ()
 main = do
     let port = 3000
-        width = 10
-        height = 10
+        width = 20
+        height = 20
         field = initializeField width height
     fieldTVar <- atomically $ newTVar field
     counterTVar <- atomically $ newTVar 0
