@@ -19,7 +19,15 @@ executable lifegame
   main-is:             Main.hs
   -- other-modules:
   -- other-extensions:
-  --build-depends:       base >=4.7 && <4.8, bytestring, stm, unordered-containers, wai, warp, websockets, wai-websockets
-  build-depends:       base >=4.7 && <4.8, bytestring, stm, unordered-containers
+  build-depends:    base >=4.7 && <4.8,
+                    bytestring,
+                    aeson,
+                    stm,
+                    unordered-containers,
+                    wai >= 3.0.1 && <3.1,
+                    warp >= 3.0.1 && <3.1,
+                    websockets >= 0.9 && <1.0,
+                    wai-websockets >= 3.0.0.2 && <3.1,
+                    http-types
   -- hs-source-dirs:
   default-language:    Haskell2010

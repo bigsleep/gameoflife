@@ -3,20 +3,57 @@
 <title>Game of Life</title>
 <h1>Game of Life</h1>
 
-<table>
-    <tr>
-        <td class="tile_life"></td>
-        <td class="tile_life"></td>
-        <td class="tile_death"></td>
-        <td class="tile_life"></td>
-    </tr>
-    <tr>
-        <td class="tile_life"></td>
-        <td class="tile_life"></td>
-        <td class="tile_death"></td>
-        <td class="tile_life"></td>
-    </tr>
-</table>
+<div id="field">
+</div>
+
+<script src="http://code.jquery.com/jquery-2.1.1.min.js" charset="utf-8"></script>
+
+<script type="text/javascript">
+    var ws;
+    var flips = [];
+
+    function createOnClick(i, j) {
+        return function () {
+            var o = $(this);
+            if ("death" === o.attr("class")) {
+                o.attr("class", "life");
+            } else {
+                o.attr("class", "death");
+            }
+
+            var exist = false;
+            for (var k = 0; k < flips.length; ++k) {
+                if (flips[k][0] === i && flips[k][1] === i) {
+                    flips.splice(k, 1);
+                    exist = true;
+                    break;
+                }
+            }
+
+            if (exist === false) {
+                flips.push([i,j]);
+            }
+
+            alert(JSON.stringify(flips));
+        };
+    }
+
+    function initializeField(width, height) {
+        var ft = $("<table>");
+        for (var j = 0; j < height; ++j) {
+            var row = $("<tr>");
+            for (var i = 0; i < width; ++i) {
+                var e = $("<td class=\"death\"></td>");
+                e.click(createOnClick(i, j));
+                row.append(e);
+            };
+            ft.append(row);
+        }
+        $("#field").html(ft);
+    }
+
+    initializeField(10, 10);
+</script>
 
 <style type="text/css">
 table {
@@ -33,12 +70,12 @@ tr {
     border: none;
 }
 
-.tile_life
+.life
 {
     background-color: black;
 }
 
-.tile_death
+.death
 {
     background-color: white;
 }

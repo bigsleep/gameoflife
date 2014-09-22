@@ -4,6 +4,7 @@ module GameOfLife
 , Field(..)
 , initializeField
 , nextStep
+, flipLifeStatus
 ) where
 
 import Data.Typeable (Typeable)
@@ -17,6 +18,9 @@ data Field = Field
     , fieldMap :: HM.HashMap (Int, Int) LifeStatus
     } deriving (Show, Eq, Typeable)
 
+flipLifeStatus :: LifeStatus -> LifeStatus
+flipLifeStatus Life = Death
+flipLifeStatus Death = Life
 
 initializeField :: Int -> Int -> Field
 initializeField width height = Field width height m
