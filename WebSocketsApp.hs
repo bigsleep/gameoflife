@@ -12,7 +12,6 @@ import qualified Data.ByteString as B (ByteString)
 import qualified Data.Aeson as DA (ToJSON(..), FromJSON(..), encode, decode)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict as HM (HashMap, fromList, lookupDefault, adjust)
-import Debug.Trace (trace)
 
 data Request = Request [(Int, Int)] deriving (Show, Eq)
 
@@ -52,14 +51,12 @@ instance WS.WebSocketsData Response where
 
 wsApp :: Int -> Int -> TVar Field -> TVar Int -> WS.ServerApp
 wsApp w h field counter pdc = do
-    trace "ws request" (return ())
     c <- WS.acceptRequest pdc
-    forever $ (routine c) --`catch` \(SomeException e) -> trace (show e) (return ())
+    forever $ (routine c)
 
     where
     routine c = do
         Request ps <- WS.receiveData c
-        trace (show ps) (return ())
         doFlip ps
         f <- atomically . readTVar $ field
         WS.sendTextData c (toResponse f)
