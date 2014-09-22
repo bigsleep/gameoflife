@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module WebSocketsApp
 ( wsApp
 ) where
@@ -5,15 +6,17 @@ module WebSocketsApp
 import GameOfLife
 import Control.Monad (forever)
 import Control.Concurrent.STM (STM, TVar, readTVar, modifyTVar', atomically)
-import qualified Network.WebSockets as WS (WebSocketsData(..), ServerApp, acceptRequest, receiveData, sendTextData)
+import Control.Exception (catch, SomeException(..))
+import qualified Network.WebSockets as WS (WebSocketsData(..), ConnectionException(..), ServerApp, acceptRequest, receiveData, sendTextData, sendBinaryData)
+import qualified Data.ByteString as B (ByteString)
 import qualified Data.Aeson as DA (ToJSON(..), FromJSON(..), encode, decode)
 import Data.Maybe (fromMaybe)
 import qualified Data.HashMap.Strict as HM (HashMap, fromList, lookupDefault, adjust)
 import Debug.Trace (trace)
 
-data Request = Request [(Int, Int)]
+data Request = Request [(Int, Int)] deriving (Show, Eq)
 
-data Response = Response [[LifeStatus]]
+data Response = Response [[LifeStatus]] deriving (Show, Eq)
 
 instance DA.FromJSON LifeStatus where
     parseJSON = fmap toLifeStatus . DA.parseJSON
@@ -51,18 +54,19 @@ wsApp :: Int -> Int -> TVar Field -> TVar Int -> WS.ServerApp
 wsApp w h field counter pdc = do
     trace "ws request" (return ())
     c <- WS.acceptRequest pdc
-    forever routine c
+    forever $ (routine c) --`catch` \(SomeException e) -> trace (show e) (return ())
 
     where
     routine c = do
         Request ps <- WS.receiveData c
+        trace (show ps) (return ())
         doFlip ps
         f <- atomically . readTVar $ field
         WS.sendTextData c (toResponse f)
 
-    toResponse (Field _ _ m) = Response $ map getStatusRow [0..(h-1)]
+    toResponse (Field _ _ m) = Response $ map getStatusColumn [0..(w-1)]
         where
-        getStatusRow y = map (flip getStatus y) [0..(w-1)]
+        getStatusColumn x = map (getStatus x) [0..(h-1)]
         getStatus x y = HM.lookupDefault Death (x, y) m
 
     doFlip ps = atomically $ do

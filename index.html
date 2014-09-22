@@ -6,12 +6,12 @@
 <div id="field">
 </div>
 
-<script src="http://code.jquery.com/jquery-2.1.1.min.js" charset="utf-8"></script>
+<script src="http://code.jquery.com/jquery-2.1.1.js" charset="utf-8"></script>
 
 <script type="text/javascript">
     var width = 10;
     var height = 10;
-    var interval = 1000;
+    var interval = 500;
     var ws = null;
     var flips = [];
 
@@ -56,13 +56,9 @@
         $("#field").html(ft);
     }
 
-    function sendMessage() {
-        ws.send(JSON.stringify(flips));
-        flips = [];
-    }
-
-    function routine() {
-        if (ws == null || ws.readyState != 1) {
+    function initializeWS()
+    {
+        try {
             ws = new WebSocket("ws://localhost:3000");
 
             ws.onopen = function () {
@@ -92,9 +88,19 @@
             ws.onclose = function () {
                 console.log("onClose");
             };
+        } catch (e) {
+            console.log(e);
         }
+    }
 
-        sendMessage();
+    function routine() {
+        console.log("routine");
+        if (ws == null || ws.readyState > 1) {
+            initializeWS();
+        } else if (ws.readyState == 1) {
+            ws.send(JSON.stringify(flips));
+            flips = [];
+        }
     }
 
     initializeField(width, height);
