@@ -9,7 +9,10 @@
 <script src="http://code.jquery.com/jquery-2.1.1.min.js" charset="utf-8"></script>
 
 <script type="text/javascript">
-    var ws;
+    var width = 10;
+    var height = 10;
+    var interval = 1000;
+    var ws = null;
     var flips = [];
 
     function createOnClick(i, j) {
@@ -33,8 +36,6 @@
             if (exist === false) {
                 flips.push([i,j]);
             }
-
-            alert(JSON.stringify(flips));
         };
     }
 
@@ -43,7 +44,10 @@
         for (var j = 0; j < height; ++j) {
             var row = $("<tr>");
             for (var i = 0; i < width; ++i) {
+                var id = "tile-" + i + "-" + j;
                 var e = $("<td class=\"death\"></td>");
+                e.attr("id", id);
+                e.attr("class", "death");
                 e.click(createOnClick(i, j));
                 row.append(e);
             };
@@ -52,7 +56,49 @@
         $("#field").html(ft);
     }
 
-    initializeField(10, 10);
+    function sendMessage() {
+        ws.send(JSON.stringify(flips));
+        flips = [];
+    }
+
+    function routine() {
+        if (ws == null || ws.readyState != 1) {
+            ws = new WebSocket("ws://localhost:3000");
+
+            ws.onopen = function () {
+                console.log("onOpen");
+            };
+
+            ws.onerror = function (error) {
+                console.log("onError", error);
+            };
+
+            ws.onmessage = function (m) {
+                console.log("onMessage", m);
+                var fieldData = $.parseJSON(m.data);
+
+                for (var i = 0; i < width; ++i) {
+                    for (var j = 0; j < height; ++j) {
+                        var id = "#tile-" + i + "-" + j;
+                        if (fieldData[i][j] == true) {
+                            $(id).attr("class", "life");
+                        } else {
+                            $(id).attr("class", "death");
+                        }
+                    }
+                }
+            };
+
+            ws.onclose = function () {
+                console.log("onClose");
+            };
+        }
+
+        sendMessage();
+    }
+
+    initializeField(width, height);
+    setInterval(routine, interval);
 </script>
 
 <style type="text/css">
