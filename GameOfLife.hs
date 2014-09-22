@@ -45,6 +45,6 @@ nextStep (Field w h m) = Field w h $ HM.fromList [((x, y), nextLife (x, y)) | x 
 
     neighbors = [(x, y) | x <- [-1..1], y <- [-1..1], (x, y) /= (0, 0)]
 
-    correctCordinate (x, y) = (x + w `mod` w, y + h `mod` h)
+    correctCordinate (x, y) = ((x + w) `mod` w, (y + h) `mod` h)
 
     countLivingNeighbors p = length . filter living . map (correctCordinate . move p) $ neighbors
