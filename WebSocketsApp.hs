@@ -4,8 +4,8 @@ module WebSocketsApp
 ) where
 
 import GameOfLife
-import Control.Monad (forever)
-import Control.Concurrent.STM (STM, TVar, readTVar, modifyTVar', atomically)
+import Control.Monad (forever, when)
+import Control.Concurrent.STM (STM, TVar, readTVar, modifyTVar', atomically, retry)
 import Control.Exception (catch, SomeException(..))
 import qualified Network.WebSockets as WS (WebSocketsData(..), ConnectionException(..), ServerApp, acceptRequest, receiveData, sendTextData, sendBinaryData)
 import qualified Data.ByteString as B (ByteString)
@@ -67,9 +67,10 @@ wsApp w h field counter pdc = do
         getStatus x y = HM.lookupDefault Death (x, y) m
 
     doFlip ps = atomically $ do
-        _ <- readTVar counter
+        before <- readTVar counter
         modifyTVar' field (flipField ps)
-        modifyTVar' counter id
+        after <- readTVar counter
+        when (before /= after) retry
 
     flipField ps (Field w' h' m) = Field w' h' (flipActions ps m)
 
