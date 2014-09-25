@@ -49,8 +49,8 @@ instance WS.WebSocketsData Response where
 
 
 
-wsApp :: Int -> Int -> TVar Field -> TVar Int -> WS.ServerApp
-wsApp w h field counter pdc = do
+wsApp :: Int -> Int -> TVar Field -> WS.ServerApp
+wsApp w h field pdc = do
     c <- WS.acceptRequest pdc
     forever $ (routine c)
 
@@ -67,10 +67,7 @@ wsApp w h field counter pdc = do
         getStatus x y = HM.lookupDefault Death (x, y) m
 
     doFlip ps = atomically $ do
-        before <- readTVar counter
         modifyTVar' field (flipField ps)
-        after <- readTVar counter
-        when (before /= after) retry
 
     flipField ps (Field w' h' m) = Field w' h' (flipActions ps m)
 

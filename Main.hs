@@ -18,6 +18,5 @@ main = do
         height = 20
         field = initializeField width height
     fieldTVar <- atomically $ newTVar field
-    counterTVar <- atomically $ newTVar 0
-    startWorker fieldTVar counterTVar 2000000
-    Warp.run port $ WaiWS.websocketsOr WS.defaultConnectionOptions (wsApp width height fieldTVar counterTVar) rootApp
+    startWorker fieldTVar 2000000
+    Warp.run port $ WaiWS.websocketsOr WS.defaultConnectionOptions (wsApp width height fieldTVar) rootApp

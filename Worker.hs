@@ -8,21 +8,19 @@ import Control.Concurrent (threadDelay, forkIO)
 import Control.Monad (forever, void)
 import Control.Exception (catch, SomeException(..))
 
-updateField :: TVar Field -> TVar Int -> STM ()
-updateField field counter =
-    modifyTVar' field nextStep >> modifyTVar' counter increment
-    where
-    increment a = if a >= 1000000 then 0 else a + 1
+updateField :: TVar Field -> STM ()
+updateField field =
+    modifyTVar' field nextStep
 
 
-worker :: TVar Field -> TVar Int -> Int -> IO ()
-worker field counter interval = forever $ work `catch` onError
+worker :: TVar Field -> Int -> IO ()
+worker field interval = forever $ work `catch` onError
     where
     work = do
         threadDelay interval
-        atomically $ updateField field counter
+        atomically $ updateField field
 
     onError (SomeException e) = print e
 
-startWorker :: TVar Field -> TVar Int -> Int -> IO ()
-startWorker f c i = void . forkIO $ worker f c i
+startWorker :: TVar Field -> Int -> IO ()
+startWorker f i = void . forkIO $ worker f i
