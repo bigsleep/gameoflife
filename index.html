@@ -4,9 +4,15 @@
 <h1>Game of Life</h1>
 
 <div id="field">
+    <table>
+        <tr v-repeat="sub: cells">
+            <td v-repeat="sub" v-on="click : cellClick(this, $parent.$index, $index)" class="{{ $value ? 'life' : 'death'}}"></td>
+        </tr>
+    </table>
 </div>
 
-<script src="http://code.jquery.com/jquery-2.1.1.js" charset="utf-8"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.js" charset="utf-8"></script>
+<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/vue/0.11.4/vue.min.js" charset="utf-8"></script>
 
 <script type="text/javascript">
     var width = 20;
@@ -14,47 +20,6 @@
     var interval = 500;
     var ws = null;
     var flips = [];
-
-    function createOnClick(i, j) {
-        return function () {
-            var o = $(this);
-            if ("death" === o.attr("class")) {
-                o.attr("class", "life");
-            } else {
-                o.attr("class", "death");
-            }
-
-            var exist = false;
-            for (var k = 0; k < flips.length; ++k) {
-                if (flips[k][0] === i && flips[k][1] === i) {
-                    flips.splice(k, 1);
-                    exist = true;
-                    break;
-                }
-            }
-
-            if (exist === false) {
-                flips.push([i,j]);
-            }
-        };
-    }
-
-    function initializeField(width, height) {
-        var ft = $("<table>");
-        for (var j = 0; j < height; ++j) {
-            var row = $("<tr>");
-            for (var i = 0; i < width; ++i) {
-                var id = "tile-" + i + "-" + j;
-                var e = $("<td class=\"death\"></td>");
-                e.attr("id", id);
-                e.attr("class", "death");
-                e.click(createOnClick(i, j));
-                row.append(e);
-            };
-            ft.append(row);
-        }
-        $("#field").html(ft);
-    }
 
     function initializeWS()
     {
@@ -71,18 +36,7 @@
 
             ws.onmessage = function (m) {
                 console.log("onMessage", m);
-                var fieldData = $.parseJSON(m.data);
-
-                for (var i = 0; i < width; ++i) {
-                    for (var j = 0; j < height; ++j) {
-                        var id = "#tile-" + i + "-" + j;
-                        if (fieldData[i][j] == true) {
-                            $(id).attr("class", "life");
-                        } else {
-                            $(id).attr("class", "death");
-                        }
-                    }
-                }
+                vm.$data.cells = $.parseJSON(m.data);
             };
 
             ws.onclose = function () {
@@ -103,7 +57,39 @@
         }
     }
 
-    initializeField(width, height);
+    var cells = [];
+    for (var j = 0; j < height; ++j) {
+        var row = [];
+        for (var i = 0; i < width; ++i) {
+            row.push(false);
+        }
+        cells.push(row);
+    }
+
+    var vm = new Vue({
+        el: "#field",
+        data: {
+            cells: cells
+        },
+        methods: {
+            cellClick: function (cell, i, j) {
+                cell.$value = !(cell.$value);
+
+                var exist = false;
+                for (var k = 0; k < flips.length; ++k) {
+                    if (flips[k][0] === i && flips[k][1] === j) {
+                        flips.splice(k, 1);
+                        exist = true;
+                        break;
+                    }
+                }
+
+                if (exist === false) {
+                    flips.push([i,j]);
+                }
+            }
+        }
+    });
     setInterval(routine, interval);
 </script>
 
